@@ -27,8 +27,14 @@ class PracticeController extends Controller
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';</script>';
 
         $html = str_replace(
-            ['{{PRACTICE_SLUG}}', '{{PRACTICE_TITLE}}', '{{PRACTICE_SESSION_URL}}', '{{PRACTICE_RESULT_URL}}', '{{TOPICS_URL}}'],
-            [$topic->slug, e($topic->title), $base . '/session', $base . '/result', route('topics.index')],
+            [
+                '{{PRACTICE_SLUG}}','{{PRACTICE_TITLE}}','{{PRACTICE_SESSION_URL}}','{{PRACTICE_RESULT_URL}}','{{TOPICS_URL}}',
+                '/practice/windows-command-line/session','/practice/windows-command-line/result'
+            ],
+            [
+                $topic->slug,e($topic->title),$base . '/session',$base . '/result',route('topics.index'),
+                '/practice/' . $topic->slug . '/session','/practice/' . $topic->slug . '/result'
+            ],
             $html
         );
 
