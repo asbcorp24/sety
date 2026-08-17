@@ -8,13 +8,13 @@ use Illuminate\Support\Str;
 class TopicController extends Controller {
  public function index(){ return response()->json(Topic::orderBy('module')->orderBy('sort_order')->get()); }
  public function store(Request $r){
-  $d=$this->data($r); $d['slug']=$this->uniqueSlug($d['slug'] ?: $d['title']);
+  $d=$this->data($r); unset($d['html_file'],$d['remove_html']); $d['slug']=$this->uniqueSlug($d['slug'] ?: $d['title']);
   $d['content']=$d['content'] ?? '';
   if($r->hasFile('html_file')) $d['html_path']=$this->storeHtml($r,$d['slug']);
   return response()->json(Topic::create($d),201);
  }
  public function update(Request $r, Topic $topic){
-  $d=$this->data($r); $d['slug']=$this->uniqueSlug($d['slug'] ?: $d['title'],$topic->id);
+  $d=$this->data($r); unset($d['html_file'],$d['remove_html']); $d['slug']=$this->uniqueSlug($d['slug'] ?: $d['title'],$topic->id);
   $d['content']=$d['content'] ?? '';
   if($r->boolean('remove_html') && $topic->html_path){ Storage::disk('local')->delete($topic->html_path); $d['html_path']=null; }
   if($r->hasFile('html_file')){ if($topic->html_path) Storage::disk('local')->delete($topic->html_path); $d['html_path']=$this->storeHtml($r,$d['slug']); }
