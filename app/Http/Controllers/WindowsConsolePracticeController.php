@@ -1,9 +1,71 @@
 <?php
 namespace App\Http\Controllers;
+
 use App\Models\PracticeAttempt;
 use Illuminate\Http\Request;
-class WindowsConsolePracticeController extends Controller {
- public function show(){ $path=resource_path('practice-pages/windows-command-line.html'); abort_unless(is_file($path),404); return response()->file($path,['Content-Type'=>'text/html; charset=UTF-8','Cache-Control'=>'no-store, no-cache, must-revalidate']); }
- public function session(Request $request){ $attempts=PracticeAttempt::where('user_id',$request->user()->id)->where('practice_key','windows-command-line')->latest()->limit(5)->get()->map(fn($a)=>['id'=>$a->id,'score'=>$a->score,'errors_count'=>$a->errors_count,'duration_seconds'=>$a->duration_seconds,'passed'=>(bool)$a->passed,'created_at'=>$a->created_at->format('d.m.Y H:i')]); return response()->json(['user'=>['id'=>$request->user()->id,'name'=>$request->user()->name],'csrf_token'=>csrf_token(),'attempts'=>$attempts]); }
- public function store(Request $request){ $data=$request->validate(['duration_seconds'=>'required|integer|min:1|max:86400','errors_count'=>'required|integer|min:0|max:10000','correct_count'=>'required|integer|min:0|max:1000','total_count'=>'required|integer|min:1|max:1000','details'=>'nullable|array|max:1000']); abort_if($data['correct_count']>$data['total_count'],422,'Некорректный результат'); $attempts=max(1,$data['correct_count']+$data['errors_count']); $data['score']=(int)round($data['correct_count']/$attempts*100); $data['passed']=$data['correct_count']===$data['total_count'] && $data['score']>=70; $data['user_id']=$request->user()->id; $data['practice_key']='windows-command-line'; $attempt=PracticeAttempt::create($data); return response()->json(['ok'=>true,'attempt_id'=>$attempt->id,'score'=>$attempt->score,'passed'=>(bool)$attempt->passed,'message'=>'Результат сохранён']); }
+
+class WindowsConsolePracticeController extends Controller
+{
+    public function show()
+    {
+        $path = resource_path('practice-pages/windows-command-line-v2.html');
+        abort_unless(is_file($path), 404);
+
+        return response()->file($path, [
+            'Content-Type' => 'text/html; charset=UTF-8',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+        ]);
+    }
+
+    public function session(Request $request)
+    {
+        $attempts = PracticeAttempt::where('user_id', $request->user()->id)
+            ->where('practice_key', 'windows-command-line')
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(fn ($attempt) => [
+                'id' => $attempt->id,
+                'score' => $attempt->score,
+                'errors_count' => $attempt->errors_count,
+                'duration_seconds' => $attempt->duration_seconds,
+                'passed' => (bool) $attempt->passed,
+                'created_at' => $attempt->created_at->format('d.m.Y H:i'),
+            ]);
+
+        return response()->json([
+            'user' => ['id' => $request->user()->id, 'name' => $request->user()->name],
+            'csrf_token' => csrf_token(),
+            'attempts' => $attempts,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'duration_seconds' => 'required|integer|min:1|max:86400',
+            'errors_count' => 'required|integer|min:0|max:10000',
+            'correct_count' => 'required|integer|min:0|max:1000',
+            'total_count' => 'required|integer|min:1|max:1000',
+            'details' => 'nullable|array|max:1000',
+        ]);
+
+        abort_if($data['correct_count'] > $data['total_count'], 422, 'Некорректный результат');
+
+        $attempts = max(1, $data['correct_count'] + $data['errors_count']);
+        $data['score'] = (int) round($data['correct_count'] / $attempts * 100);
+        $data['passed'] = $data['correct_count'] === $data['total_count'] && $data['score'] >= 70;
+        $data['user_id'] = $request->user()->id;
+        $data['practice_key'] = 'windows-command-line';
+
+        $attempt = PracticeAttempt::create($data);
+
+        return response()->json([
+            'ok' => true,
+            'attempt_id' => $attempt->id,
+            'score' => $attempt->score,
+            'passed' => (bool) $attempt->passed,
+            'message' => 'Результат сохранён',
+        ]);
+    }
 }
